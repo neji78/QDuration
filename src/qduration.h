@@ -1,7 +1,7 @@
 #ifndef QDURATION_H
 #define QDURATION_H
 #include <QTime>
-
+namespace QtDuration {
 class QDuration
 {
 public:
@@ -34,5 +34,6 @@ private:
     int years_;
     QTime time_;
 };
+}
 
 #endif // QDURATION_H

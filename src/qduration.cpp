@@ -5,7 +5,7 @@
 #define DAY_SECONDS 86400
 #define HOUR_SECONDS 3600
 #define MINUTE_SECONDS 60
-
+namespace QtDuration {
 QDuration::QDuration()
 {
     days_ = 0;
@@ -29,7 +29,7 @@ QString QDuration::toString()
 {
     QString duration;
     duration = QString::number(this->years_) + "-" + QString::number(this->months_) + "-" + QString::number(this->days_) + " " +
-            this->time_.toString("hh:mm:ss:zzz");
+               this->time_.toString("hh:mm:ss:zzz");
     return duration;
 }
 
@@ -271,7 +271,7 @@ void QDuration::clearDuration()
 bool QDuration::isValid()
 {
     if(this->time_.isValid() && this->years_ <= 67 && this->years_ >=0 && this->months_ < 12 &&
-            this->months_ >= 0 && this->days_ < 30 && this->days_ >= 0)
+        this->months_ >= 0 && this->days_ < 30 && this->days_ >= 0)
     {
         return true;
     }
@@ -284,4 +284,5 @@ bool QDuration::isValid()
 QTime QDuration::getTime()
 {
     return time_;
+}
 }

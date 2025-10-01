@@ -1,0 +1,36 @@
+# -----------------------
+# Build & Install folders
+# -----------------------
+/build/
+/install/
+
+# -----------------------
+# Qt Creator files
+# -----------------------
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.autosave
+*.log
+*.user
+
+# -----------------------
+# Visual Studio / MSVC
+# -----------------------
+*.vcxproj.user
+*.sln
+*.sdf
+*.ipch
+*.pdb
+*.obj
+*.exe
+*.dll
+*.lib
+
+# -----------------------
+# CMake files
+# -----------------------
+CMakeFiles/
+CMakeCache.txt
+cmake_install._

@@ -8,9 +8,12 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
+enable_testing()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install path" FORCE)
 endif()
 
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(tests)

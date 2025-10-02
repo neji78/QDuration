@@ -29,15 +29,41 @@ install/
 ```
 # 🔧 Usage in C++
 ```
-#include <QtDuration/QDuration>
+#include <QCoreApplication>
 #include <QDebug>
+#include <QDuration>
 
-int main() {
-    QtDuration::QDuration dur(3661); // 1h 1m 1s
-    qDebug() << dur.toString();      // "1h 1m 1s"
+using namespace QtDuration;
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+
+    // Construct from QTime + days + months + years
+    QTime t1(1, 1, 1);   // 01:01:01
+    QDuration d1(t1, 0, 0, 0);   // 1h 1m 1s
+
+    QTime t2(0, 45, 0);  // 45 minutes
+    QDuration d2(t2, 0, 0, 0);
+
+    QTime t3(0, 0, 0);   // midnight, but add days/months/years
+    QDuration d3(t3, 1, 2, 0);   // 1 day, 2 months, 0 years
+
+    qDebug() << "d1:" << d1;
+    qDebug() << "d2:" << d2;
+    qDebug() << "d3:" << d3;
+
     return 0;
 }
+
 ```
+and outputs:
+```
+d1: QDuration(0 Years,0 Months,0 Days,"01:01:01:000" 3661s)
+d2: QDuration(0 Years,0 Months,0 Days,"00:45:00:000" 2700s)
+d3: QDuration(0 Years,2 Months,1 Days,"00:00:00:000" 5270400s)
+```
+
 # 🎨 Usage in QML
 ```
 import QtQuick 2.15

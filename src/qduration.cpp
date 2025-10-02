@@ -1,288 +1,237 @@
 #include "qduration.h"
 
-#define YEAR_SECONDS 31536000 //contain 365 days
-#define MONTH_SECONDS 2592000 //contain 30 days
+#define YEAR_SECONDS 31536000 // 365 days
+#define MONTH_SECONDS 2592000 // 30 days
 #define DAY_SECONDS 86400
 #define HOUR_SECONDS 3600
 #define MINUTE_SECONDS 60
+
 namespace QtDuration {
-QDuration::QDuration()
+QDebug operator<<(QDebug dbg, const QDuration &duration)
 {
-    days_ = 0;
-    months_ = 0;
-    years_ = 0;
-    time_ = QTime::fromString("00:00:00:000", "hh:mm:ss:zzz");
+    dbg.nospace() << "QDuration("
+                  << duration.getTime().toString("hh:mm:ss:zzz") << " "
+                  << duration.seconds() << "s)";
+    return dbg.space();
 }
 
-QDuration::QDuration(QTime time, int days, int months, int years)
+QDuration::QDuration(QObject *parent)
+    : QObject(parent),
+      days_(0),
+      months_(0),
+      years_(0),
+      time_(QTime(0, 0, 0, 0))
 {
-    days_ = 0;
-    months_ = 0;
-    years_ = 0;
-    time_ = time;
-    this->addYears(years);
-    this->addMonths(months);
-    this->addDays(days);
 }
 
-QString QDuration::toString()
+QDuration::QDuration(QTime time, int days, int months, int years, QObject *parent)
+    : QObject(parent),
+      days_(0),
+      months_(0),
+      years_(0),
+      time_(time)
 {
-    QString duration;
-    duration = QString::number(this->years_) + "-" + QString::number(this->months_) + "-" + QString::number(this->days_) + " " +
-               this->time_.toString("hh:mm:ss:zzz");
-    return duration;
+    addYears(years);
+    addMonths(months);
+    addDays(days);
 }
 
-QDuration QDuration::fromString(QString timeDurationString, QString dateDurationString)
+QString QDuration::toString() const
 {
-    /*Time Duration format is hh:mm:ss and Date Duration format is yy-mm-dd*/
-    QStringList datePices = dateDurationString.split( "-" );
-    QDuration duration;
-    duration.addYears(datePices[0].toInt());
-    duration.addMonths(datePices[1].toInt());
-    duration.addDays(datePices[2].toInt());
-    duration.time_ = QTime::fromString(timeDurationString, "hh:mm:ss:zzz");
-    return duration;
+    return QString("%1-%2-%3 %4")
+        .arg(years_)
+        .arg(months_)
+        .arg(days_)
+        .arg(time_.toString("hh:mm:ss:zzz"));
 }
 
-QDuration QDuration::fromString(QString durationString)
-{
-    /*Duration format is yy-mm-dd hh:mm:ss*/
-    QDuration duration;
-    if(!durationString.isNull())
-    {
-        QStringList durationPices = durationString.split(" ");
-        QStringList datePices = durationPices[0].split( "-" );
-        duration.addYears(datePices[0].toInt());
-        duration.addMonths(datePices[1].toInt());
-        duration.addDays(datePices[2].toInt());
-        duration.time_ = QTime::fromString(durationPices[1], "hh:mm:ss:zzz");
-    }
-    return duration;
+// QDuration QDuration::fromString(const QString &timeDurationString, const QString &dateDurationString)
+// {
+//     QDuration duration;
+//     QStringList datePieces = dateDurationString.split("-");
+//     if (datePieces.size() == 3) {
+//         duration.addYears(datePieces[0].toInt());
+//         duration.addMonths(datePieces[1].toInt());
+//         duration.addDays(datePieces[2].toInt());
+//     }
+//     duration.time_ = QTime::fromString(timeDurationString, "hh:mm:ss:zzz");
+//     return duration;
+// }
 
+// QDuration QDuration::fromString(const QString &durationString)
+// {
+//     QDuration duration;
+//     if (!durationString.isEmpty()) {
+//         QStringList parts = durationString.split(" ");
+//         if (parts.size() == 2) {
+//             QStringList datePieces = parts[0].split("-");
+//             if (datePieces.size() == 3) {
+//                 duration.addYears(datePieces[0].toInt());
+//                 duration.addMonths(datePieces[1].toInt());
+//                 duration.addDays(datePieces[2].toInt());
+//             }
+//             duration.time_ = QTime::fromString(parts[1], "hh:mm:ss:zzz");
+//         }
+//     }
+//     return duration;
+// }
+
+// QDuration QDuration::toDuration() const
+// {
+//     return *this;
+// }
+
+int QDuration::seconds() const
+{
+    return years_ * YEAR_SECONDS +
+           months_ * MONTH_SECONDS +
+           days_ * DAY_SECONDS +
+           timeSeconds();
 }
 
-QDuration QDuration::toDuration(QDuration duration)
+int QDuration::milliseconds() const
 {
-    QTime falseTime;
-    falseTime = QTime::fromString("00:00:00:000", "hh:mm:ss:zzz");
-    QDuration falseValue(falseTime, 30, 12, 67);
-    QDuration result;
-
-    if(this->seconds() <= duration.seconds())
-    {
-        result.years_ = duration.years_ - this->years_;
-        result.months_ = duration.months_ - this->months_;
-        result.days_ = duration.days_ - this->days_;
-        if(this->time_.secsTo(duration.time_) >= 0)
-        {
-            result.addSeconds(this->time_.secsTo(duration.time_));
-        }
-        else
-        {
-            int sec = 0;
-            QDuration temp;
-            sec = result.seconds();
-            sec -= abs(this->time_.secsTo(duration.time_));
-            temp.addSeconds(sec);
-            result = temp;
-        }
-        return result;
-    }
-    else
-    {
-        return falseValue;
-    }
-
+    return seconds() * 1000 + timeMilliseconds();
 }
 
-int QDuration::seconds()
+int QDuration::timeSeconds() const
 {
-    int sec = 0;
-    sec += this->years_ * YEAR_SECONDS;
-    sec += this->months_ * MONTH_SECONDS;
-    sec += this->days_ * DAY_SECONDS;
-    sec += this->timeSeconds();
-    return sec;
+    return time_.hour() * HOUR_SECONDS +
+           time_.minute() * MINUTE_SECONDS +
+           time_.second();
 }
 
-int QDuration::mSeconds()
+int QDuration::timeSeconds(QTime time) const
 {
-    int msec = 0;
-    msec += this->years_ * YEAR_SECONDS;
-    msec += this->months_ * MONTH_SECONDS;
-    msec += this->days_ * DAY_SECONDS;
-    msec = msec * 1000;
-    msec += this->timeMseconds();
-    return msec;
+    return time.hour() * HOUR_SECONDS +
+           time.minute() * MINUTE_SECONDS +
+           time.second();
 }
 
-int QDuration::timeSeconds()
+int QDuration::timeMilliseconds() const
 {
-    int sec = 0;
-    sec += this->time_.hour() * HOUR_SECONDS;
-    sec += this->time_.minute() * MINUTE_SECONDS;
-    sec += this->time_.second();
-    return sec;
+    return time_.hour() * HOUR_SECONDS * 1000 +
+           time_.minute() * MINUTE_SECONDS * 1000 +
+           time_.second() * 1000 +
+           time_.msec();
 }
 
-int QDuration::timeSeconds(QTime time)
+int QDuration::timeMilliseconds(QTime time) const
 {
-    int sec = 0;
-    sec += time.hour() * HOUR_SECONDS;
-    sec += time.minute() * MINUTE_SECONDS;
-    sec += time.second();
-    return sec;
+    return time.hour() * HOUR_SECONDS * 1000 +
+           time.minute() * MINUTE_SECONDS * 1000 +
+           time.second() * 1000 +
+           time.msec();
 }
 
-int QDuration::timeMseconds()
-{
-    int msec = 0;
-    msec += this->time_.hour() * HOUR_SECONDS;
-    msec += this->time_.minute() * MINUTE_SECONDS;
-    msec += this->time_.second();
-    msec = msec * 1000;
-    msec += this->time_.msec();
-    return msec;
-}
-
-int QDuration::timeMseconds(QTime time)
-{
-    int msec = 0;
-    msec += time.hour() * HOUR_SECONDS;
-    msec += time.minute() * MINUTE_SECONDS;
-    msec += time.second();
-    msec = msec * 1000;
-    msec += time.msec();
-    return msec;
-}
-
+// Adders
 void QDuration::addYears(int years)
 {
-    this->years_ += years;
-    if(this->years_ > 67)
-    {
-        this->years_ = this->years_ - 67;
-    }
+    years_ += years;
+    if (years_ > 67) years_ -= 67; // keep max 67
 }
 
 void QDuration::addMonths(int months)
 {
-    this->months_ += months;
-    if(this->months_ >= 12)
-    {
-        this->addYears((this->months_ / 12));
-        this->months_ = this->months_ % 12;
+    months_ += months;
+    if (months_ >= 12) {
+        addYears(months_ / 12);
+        months_ %= 12;
     }
 }
 
 void QDuration::addDays(int days)
 {
-    this->days_ += days;
-    if(this->days_ >= 30)
-    {
-        this->addMonths((this->days_ / 30));
-        this->days_ = this->days_ % 30;
+    days_ += days;
+    if (days_ >= 30) {
+        addMonths(days_ / 30);
+        days_ %= 30;
     }
 }
 
 void QDuration::addHours(int hours)
 {
-    QTime temp = this->time_;
-    if(hours < 24 && hours > 0)
-    {
-        this->time_ = this->time_.addSecs(hours * HOUR_SECONDS);
-        if(timeSeconds(temp) >= this->timeSeconds())
-        {
-            this->addDays(1);
-        }
-    }
-    else if(hours > 0)
-    {
-        this->addDays(hours / 24);
-        this->addHours(hours % 24);
-    }
+    if (hours <= 0) return;
 
+    QTime oldTime = time_;
+    time_ = time_.addSecs(hours * HOUR_SECONDS);
+    if (timeSeconds(oldTime) >= timeSeconds()) addDays(1);
+
+    if (hours >= 24) {
+        addDays(hours / 24);
+        addHours(hours % 24);
+    }
 }
 
 void QDuration::addMinutes(int minutes)
 {
-    QTime temp = this->time_;
-    if(minutes < 60 && minutes > 0)
-    {
-        this->time_ = this->time_.addSecs(minutes * MINUTE_SECONDS);
-        if(timeSeconds(temp) >= this->timeSeconds())
-        {
-            this->addDays(1);
-        }
-    }
-    else if(minutes > 0)
-    {
-        this->addHours(minutes / 60);
-        this->addMinutes(minutes % 60);
-    }
+    if (minutes <= 0) return;
 
+    QTime oldTime = time_;
+    time_ = time_.addSecs(minutes * MINUTE_SECONDS);
+    if (timeSeconds(oldTime) >= timeSeconds()) addDays(1);
+
+    if (minutes >= 60) {
+        addHours(minutes / 60);
+        addMinutes(minutes % 60);
+    }
 }
 
 void QDuration::addSeconds(int seconds)
 {
-    QTime temp = this->time_;
-    if(seconds < 60 && seconds > 0)
-    {
-        this->time_ = this->time_.addSecs(seconds);
-        if(timeSeconds(temp) >= this->timeSeconds())
-        {
-            this->addDays(1);
-        }
-    }
-    else if(seconds > 0)
-    {
-        this->addMinutes(seconds / 60);
-        this->addSeconds(seconds % 60);
+    if (seconds <= 0) return;
+
+    QTime oldTime = time_;
+    time_ = time_.addSecs(seconds);
+    if (timeSeconds(oldTime) >= timeSeconds()) addDays(1);
+
+    if (seconds >= 60) {
+        addMinutes(seconds / 60);
+        addSeconds(seconds % 60);
     }
 }
 
-void QDuration::addMiliseconds(int miliseconds)
+void QDuration::addMilliseconds(int milliseconds)
 {
-    QTime temp = this->time_;
-    if(miliseconds < 1000 && miliseconds > 0)
-    {
-        this->time_ = this->time_.addMSecs(miliseconds);
-        if(timeMseconds(temp) >= this->timeMseconds())
-        {
-            this->addDays(1);
-        }
-    }
-    else if(miliseconds > 0)
-    {
-        this->addSeconds(miliseconds / 1000);
-        this->addMiliseconds(miliseconds % 1000);
+    if (milliseconds <= 0) return;
+
+    QTime oldTime = time_;
+    time_ = time_.addMSecs(milliseconds);
+    if (timeMilliseconds(oldTime) >= timeMilliseconds()) addDays(1);
+
+    if (milliseconds >= 1000) {
+        addSeconds(milliseconds / 1000);
+        addMilliseconds(milliseconds % 1000);
     }
 }
 
 void QDuration::clearDuration()
 {
-    days_ = 0;
-    months_ = 0;
-    years_ = 0;
-    time_ = QTime::fromString("00:00:00:000", "hh:mm:ss:zzz");
+    years_ = months_ = days_ = 0;
+    time_ = QTime(0, 0, 0, 0);
 }
 
-bool QDuration::isValid()
+bool QDuration::isValid() const
 {
-    if(this->time_.isValid() && this->years_ <= 67 && this->years_ >=0 && this->months_ < 12 &&
-        this->months_ >= 0 && this->days_ < 30 && this->days_ >= 0)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return time_.isValid() &&
+           years_ >= 0 && years_ <= 67 &&
+           months_ >= 0 && months_ < 12 &&
+           days_ >= 0 && days_ < 30;
 }
 
-QTime QDuration::getTime()
+int QDuration::hours() const
+{
+    return time_.hour();
+}
+
+int QDuration::minutes() const
+{
+    return time_.minute();
+}
+
+QTime QDuration::getTime() const
 {
     return time_;
 }
-}
+
+} // namespace QtDuration

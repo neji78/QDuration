@@ -3,8 +3,11 @@ find_package(Qt6 6.2 REQUIRED COMPONENTS Core Qml)
 add_library(QtDuration SHARED
     qduration.cpp
     qduration.h
+    qduration_global.h
     # plugin.cpp
 )
+
+target_compile_definitions(QtDuration PRIVATE QDURATION_LIBRARY)
 target_link_libraries(QtDuration PRIVATE Qt6::Core Qt6::Qml)
 
 target_include_directories(QtDuration PUBLIC
